@@ -7,6 +7,7 @@ import {
   FlatList,
   ActivityIndicator,
   Alert,
+  Platform, 
   RefreshControl,
   StyleSheet,
 } from 'react-native';
@@ -37,7 +38,8 @@ function MainScreen() {
       if (!res.ok) throw new Error();
       setTours(await res.json());
     } catch {
-      Alert.alert('Lỗi', 'Không thể tải dữ liệu');
+      const errMsg = 'Không thể tải dữ liệu';
+      Platform.OS === 'web' ? window.alert(errMsg) : Alert.alert('Lỗi', errMsg);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -49,10 +51,12 @@ function MainScreen() {
   }, [fetchTours]);
 
   const handlePress = useCallback((t: Tour) => {
-    Alert.alert(
-      'Chi tiết',
-      `Tên: ${t.name}\nKhởi hành: ${formatDate(t.departure)}\nSố ngày: ${t.days}\nGiá: ${t.price.toLocaleString('vi-VN')} ₫`
-    );
+    const info = `Tên: ${t.name}\nKhởi hành: ${formatDate(t.departure)}\nSố ngày: ${t.days} ngày\nGiá: ${t.price.toLocaleString('vi-VN')} ₫`;
+    if (Platform.OS === 'web') {
+      window.alert(`[Chi tiết tour]\n${info}`);
+    } else {
+      Alert.alert('Chi tiết tour', info);
+    }
   }, []);
 
   const handleToggleFav = useCallback(
@@ -70,7 +74,8 @@ function MainScreen() {
         if (!res.ok) throw new Error();
       } catch {
         setTours(prev);
-        Alert.alert('Lỗi', 'Cập nhật thất bại');
+        const errMsg = 'Cập nhật thất bại';
+        Platform.OS === 'web' ? window.alert(errMsg) : Alert.alert('Lỗi', errMsg);
       }
     },
     [tours]
@@ -85,7 +90,7 @@ function MainScreen() {
   }, [tours, keyword]);
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
       <View style={{ padding: 10 }}>
         <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Tour Việt</Text>
         <Text>23637711 – Vũ Trần Đức Nghĩa</Text>
@@ -111,14 +116,14 @@ function MainScreen() {
             <View style={{ padding: 10 }}>
               <Text style={{ fontWeight: 'bold' }}>Tour yêu thích ({favoriteTours.length})</Text>
               {favoriteTours.length === 0 ? (
-                <Text>Chưa có tour yêu thích</Text>
+                <Text style={{ fontStyle: 'italic', color: '#888' }}>Chưa có tour yêu thích</Text>
               ) : (
                 <FlatList
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   data={favoriteTours}
                   keyExtractor={(item) => item.id}
-                  ItemSeparatorComponent={() => <View style={{ width: 8 }} />}
+                  ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
                   renderItem={({ item }) => (
                     <TourItem
                       tour={item}
@@ -145,7 +150,7 @@ function MainScreen() {
             />
           )}
           ListEmptyComponent={
-            <Text style={{ textAlign: 'center', marginTop: 20 }}>
+            <Text style={{ textAlign: 'center', marginTop: 20, color: '#888' }}>
               Không tìm thấy tour phù hợp
             </Text>
           }
@@ -159,12 +164,12 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
-    padding: 6,
+    padding: 8,
     marginVertical: 6,
-    borderRadius: 4,
+    borderRadius: 6,
   },
   secHeader: {
-    backgroundColor: '#e5e5e5',
-    padding: 6,
+    backgroundColor: '#eee',
+    padding: 8,
   },
 });
